@@ -80,23 +80,29 @@ var ToDoList = function (_React$Component2) {
     var _this2 = _possibleConstructorReturn(this, (ToDoList.__proto__ || Object.getPrototypeOf(ToDoList)).call(this, props));
 
     _this2.state = {
-      new_task: "",
+      new_task: '',
       tasks: []
     };
 
     _this2.handleChange = _this2.handleChange.bind(_this2);
     _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
+    _this2.fetchTasks = _this2.fetchTasks.bind(_this2);
     return _this2;
   }
 
   _createClass(ToDoList, [{
     key: "componentDidMount",
     value: function componentDidMount() {
+      this.fetchTasks(); // get tasks on mount
+    }
+  }, {
+    key: "fetchTasks",
+    value: function fetchTasks() {
       var _this3 = this;
 
-      fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks?api_key=48").then(checkStatus).then(json).then(function (response) {
+      // move the get tasks code into its own method so we can use it at other places
+      fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks?api_key=527").then(checkStatus).then(json).then(function (response) {
         console.log(response);
-
         _this3.setState({ tasks: response.tasks });
       }).catch(function (error) {
         console.error(error.message);
@@ -110,8 +116,32 @@ var ToDoList = function (_React$Component2) {
   }, {
     key: "handleSubmit",
     value: function handleSubmit(event) {
+      var _this4 = this;
+
       event.preventDefault();
-      // do nothing for now
+      var new_task = this.state.new_task;
+
+      new_task = new_task.trim();
+      if (!new_task) {
+        return;
+      }
+
+      fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks?api_key=527", {
+        method: "POST",
+        mode: "cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          task: {
+            content: new_task
+          }
+        })
+      }).then(checkStatus).then(json).then(function (data) {
+        _this4.setState({ new_task: '' });
+        _this4.fetchTasks();
+      }).catch(function (error) {
+        _this4.setState({ error: error.message });
+        console.log(error);
+      });
     }
   }, {
     key: "render",

@@ -49,11 +49,9 @@ var Task = function (_React$Component) {
         ),
         React.createElement(
           "button",
-          {
-            onClick: function onClick() {
+          { onClick: function onClick() {
               return onDelete(id);
-            }
-          },
+            } },
           "Delete"
         ),
         React.createElement("input", {
@@ -80,13 +78,14 @@ var ToDoList = function (_React$Component2) {
     var _this2 = _possibleConstructorReturn(this, (ToDoList.__proto__ || Object.getPrototypeOf(ToDoList)).call(this, props));
 
     _this2.state = {
-      new_task: '',
+      new_task: "",
       tasks: []
     };
 
     _this2.handleChange = _this2.handleChange.bind(_this2);
     _this2.handleSubmit = _this2.handleSubmit.bind(_this2);
     _this2.fetchTasks = _this2.fetchTasks.bind(_this2);
+    _this2.deleteTask = _this2.deleteTask.bind(_this2);
     return _this2;
   }
 
@@ -136,7 +135,7 @@ var ToDoList = function (_React$Component2) {
           }
         })
       }).then(checkStatus).then(json).then(function (data) {
-        _this4.setState({ new_task: '' });
+        _this4.setState({ new_task: "" });
         _this4.fetchTasks();
       }).catch(function (error) {
         _this4.setState({ error: error.message });
@@ -144,8 +143,29 @@ var ToDoList = function (_React$Component2) {
       });
     }
   }, {
+    key: "deleteTask",
+    value: function deleteTask(id) {
+      var _this5 = this;
+
+      if (!id) {
+        return; // if no id is supplied, early return
+      }
+
+      fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks/" + id + "?api_key=527", {
+        method: "DELETE",
+        mode: "cors"
+      }).then(checkStatus).then(json).then(function (data) {
+        _this5.fetchTasks(); // fetch tasks after delete
+      }).catch(function (error) {
+        _this5.setState({ error: error.message });
+        console.log(error);
+      });
+    }
+  }, {
     key: "render",
     value: function render() {
+      var _this6 = this;
+
       var _state = this.state,
           new_task = _state.new_task,
           tasks = _state.tasks;
@@ -166,7 +186,7 @@ var ToDoList = function (_React$Component2) {
               "To Do List"
             ),
             tasks.length > 0 ? tasks.map(function (task) {
-              return React.createElement(Task, { key: task.id, task: task });
+              return React.createElement(Task, { key: task.id, task: task, onDelete: _this6.deleteTask });
             }) : React.createElement(
               "p",
               null,

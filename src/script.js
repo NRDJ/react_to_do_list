@@ -1,33 +1,3 @@
-const checkStatus = (response) => {
-  if (response.ok) {
-    // .ok returns true if response status is 200-299
-    return response;
-  }
-  throw new Error("Request was either a 404 or 500");
-};
-
-const json = (response) => response.json();
-
-class Task extends React.Component {
-  render() {
-    const { task, onDelete, onComplete } = this.props;
-    const { id, content, completed } = task;
-
-    return (
-      <div className="row mb-1">
-        <p className="col">{content}</p>
-        <button onClick={() => onDelete(id)}>Delete</button>
-        <input
-          className="d-inline-block mt-2"
-          type="checkbox"
-          onChange={() => onComplete(id, completed)}
-          checked={completed}
-        />
-      </div>
-    );
-  }
-}
-
 class ToDoList extends React.Component {
   constructor(props) {
     super(props);
@@ -40,6 +10,7 @@ class ToDoList extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.fetchTasks = this.fetchTasks.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
+    this.toggleComplete = this.toggleComplete.bind(this);
   }
 
   componentDidMount() {
@@ -48,7 +19,7 @@ class ToDoList extends React.Component {
 
   fetchTasks() {
     // move the get tasks code into its own method so we can use it at other places
-    fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks?api_key=527")
+    fetch("https://fewd-todolist-api.onrender.com//tasks?api_key=3")
       .then(checkStatus)
       .then(json)
       .then((response) => {
@@ -72,7 +43,7 @@ class ToDoList extends React.Component {
       return;
     }
 
-    fetch("https://altcademy-to-do-list-api.herokuapp.com/tasks?api_key=527", {
+    fetch("https://fewd-todolist-api.onrender.com//tasks?api_key=3", {
       method: "POST",
       mode: "cors",
       headers: { "Content-Type": "application/json" },
@@ -100,7 +71,7 @@ class ToDoList extends React.Component {
     }
 
     fetch(
-      `https://altcademy-to-do-list-api.herokuapp.com/tasks/${id}?api_key=527`,
+      `https://fewd-todolist-api.onrender.com//tasks/${id}?api_key=3`,
       {
         method: "DELETE",
         mode: "cors",
@@ -110,6 +81,33 @@ class ToDoList extends React.Component {
       .then(json)
       .then((data) => {
         this.fetchTasks(); // fetch tasks after delete
+      })
+
+      .catch((error) => {
+        this.setState({ error: error.message });
+        console.log(error);
+      });
+  }
+
+  toggleComplete(id, completed) {
+    if (!id) {
+      return; // early return if no id
+    }
+
+    const newState = completed ? "active" : "complete";
+    console.log(newState);
+
+    fetch(
+      `https://fewd-todolist-api.onrender.com/tasks/${id}/mark_${newState}?api_key=3`,
+      {
+        method: "PUT",
+        mode: "cors",
+      }
+    )
+      .then(checkStatus)
+      .then(json)
+      .then((data) => {
+        this.fetchTasks();
       })
 
       .catch((error) => {
@@ -129,7 +127,9 @@ class ToDoList extends React.Component {
             {tasks.length > 0 ? (
               tasks.map((task) => {
                 return (
-                  <Task key={task.id} task={task} onDelete={this.deleteTask} />
+                  <Task key={task.id} task={task} 
+                  onDelete={this.deleteTask} 
+                  onComplete={this.toggleComplete}/>
                 );
               })
             ) : (
@@ -149,6 +149,36 @@ class ToDoList extends React.Component {
             </form>
           </div>
         </div>
+      </div>
+    );
+  }
+}
+
+const json = (response) => response.json();
+
+const checkStatus = (response) => {
+  if (response.ok) {
+    // .ok returns true if response status is 200-299
+    return response;
+  }
+  throw new Error("Request was either a 404 or 500");
+};
+
+class Task extends React.Component {
+  render() {
+    const { task, onDelete, onComplete } = this.props;
+    const { id, content, completed } = task;
+
+    return (
+      <div className="row mb-1">
+        <p className="col">{content}</p>
+        <button onClick={() => onDelete(id)}>Delete</button>
+        <input
+          className="d-inline-block mt-2"
+          type="checkbox"
+          onChange={() => onComplete(id, completed)}
+          checked={completed}
+        />
       </div>
     );
   }

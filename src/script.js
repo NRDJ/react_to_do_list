@@ -4,6 +4,7 @@ class ToDoList extends React.Component {
     this.state = {
       new_task: "",
       tasks: [],
+      filter: "all",
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -11,6 +12,7 @@ class ToDoList extends React.Component {
     this.fetchTasks = this.fetchTasks.bind(this);
     this.deleteTask = this.deleteTask.bind(this);
     this.toggleComplete = this.toggleComplete.bind(this);
+    this.toggleFilter = this.toggleFilter.bind(this);
   }
 
   componentDidMount() {
@@ -70,13 +72,10 @@ class ToDoList extends React.Component {
       return; // if no id is supplied, early return
     }
 
-    fetch(
-      `https://fewd-todolist-api.onrender.com//tasks/${id}?api_key=3`,
-      {
-        method: "DELETE",
-        mode: "cors",
-      }
-    )
+    fetch(`https://fewd-todolist-api.onrender.com//tasks/${id}?api_key=3`, {
+      method: "DELETE",
+      mode: "cors",
+    })
       .then(checkStatus)
       .then(json)
       .then((data) => {
@@ -116,8 +115,16 @@ class ToDoList extends React.Component {
       });
   }
 
+  toggleFilter(e) {
+    console.log(e.target.name);
+
+    this.setState({
+      filter: e.target.name,
+    });
+  }
+
   render() {
-    const { new_task, tasks } = this.state;
+    const { new_task, tasks, filter } = this.state;
 
     return (
       <div className="container">
@@ -125,16 +132,60 @@ class ToDoList extends React.Component {
           <div className="col-12">
             <h2 className="mb-3">To Do List</h2>
             {tasks.length > 0 ? (
-              tasks.map((task) => {
-                return (
-                  <Task key={task.id} task={task} 
-                  onDelete={this.deleteTask} 
-                  onComplete={this.toggleComplete}/>
-                );
-              })
+              tasks.filter((task) => {
+                  if (filter === "all") {
+                    return true;
+                  } else if (filter === "active") {
+                    return !task.completed;
+                  } else {
+                    return task.completed;
+                  }
+                })
+                .map((task) => {
+                  return (
+                    <Task
+                      key={task.id}
+                      task={task}
+                      onDelete={this.deleteTask}
+                      onComplete={this.toggleComplete}
+                    />
+                  );
+                })
             ) : (
               <p>no tasks here</p>
             )}
+            <div className="mt-3">
+              <label>
+                <input
+                  type="checkbox"
+                  name="all"
+                  checked={filter === "all"}
+                  onChange={this.toggleFilter}
+                />{" "}
+                All
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  name="active"
+                  checked={filter === "active"}
+                  onChange={this.toggleFilter}
+                />{" "}
+                Active
+              </label>
+
+              <label>
+                <input
+                  type="checkbox"
+                  name="completed"
+                  checked={filter === "completed"}
+                  onChange={this.toggleFilter}
+                />{" "}
+                Completed
+              </label>
+            </div>
+
             <form onSubmit={this.handleSubmit} className="form-inline my-4">
               <input
                 type="text"
